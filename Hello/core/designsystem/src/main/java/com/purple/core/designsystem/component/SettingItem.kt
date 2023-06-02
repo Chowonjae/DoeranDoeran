@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.purple.core.designsystem.icon.HiIcons
 import com.purple.core.designsystem.theme.HiTheme
 import com.purple.core.designsystem.theme.HiTypography
-import com.purple.core.model.SettingItemType
+import com.purple.core.model.type.SettingItemType
 
 @Composable
 fun SettingItem(
@@ -63,15 +63,15 @@ private fun SettingItemContent(
             Box(contentAlignment = Alignment.CenterStart) {
                 Text(
                     text = content.mainText,
-                    color = if (content.isWarning) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline, // ktlint-disable max-line-length
-                    style = HiTypography.headlineSmall,
+                    color = if (content.isWarning) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface, // ktlint-disable max-line-length
+                    style = HiTypography.bodyLarge,
                 )
             }
             Box(contentAlignment = Alignment.CenterStart) {
                 Text(
                     text = content.subText,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = HiTypography.bodyLarge,
+                    color = MaterialTheme.colorScheme.outline,
+                    style = HiTypography.bodyMedium,
                 )
             }
         }
@@ -83,8 +83,8 @@ private fun SettingItemContent(
         ) {
             Text(
                 text = content.mainText,
-                color = if (content.isWarning) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline, // ktlint-disable max-line-length
-                style = HiTypography.headlineSmall,
+                color = if (content.isWarning) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface, // ktlint-disable max-line-length
+                style = HiTypography.bodyLarge,
             )
         }
     }

@@ -1,6 +1,7 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
+    kotlin("kapt")
 }
 
 android {
@@ -9,7 +10,6 @@ android {
 
     defaultConfig {
         minSdk = AppConfig.minSdk
-        targetSdk = 33
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -36,11 +36,19 @@ android {
 dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:datastore"))
+    implementation(project(":core:database"))
+
+    implementation(Room.ROOM)
+    implementation(Room.ROOM_KTX)
+    implementation(Room.ROOM_COMMON)
+    annotationProcessor(Room.ROOM_COMPILER)
+    kapt(Room.ROOM_COMPILER)
 
     implementation(appDependencies)
     testImplementation(defaultUnitTest)
     androidTestImplementation(defaultAndroidTest)
     implementation(Kotlin.KOTLIN_COROUTINES)
+    implementation(retrofit2Dependencies)
     implementation("javax.inject:javax.inject:1")
 
     implementation(Datastore.DATASTORE)

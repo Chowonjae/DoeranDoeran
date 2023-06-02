@@ -1,0 +1,1 @@
+C:\Kongbee\S08P31A408\Hello\core\data\build\classes\kotlin\main\com\purple\core\data\RoomRepository.class

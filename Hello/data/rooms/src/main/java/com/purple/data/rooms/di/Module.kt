@@ -1,7 +1,9 @@
 package com.purple.data.rooms.di
 
-import com.purple.data.rooms.RoomRepository
-import com.purple.data.rooms.RoomRepositoryImpl
+import com.purple.data.rooms.repository.FeedRepository
+import com.purple.data.rooms.repository.FeedRepositoryImpl
+import com.purple.data.rooms.repository.RoomRepository
+import com.purple.data.rooms.repository.RoomRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -15,4 +17,9 @@ interface Module {
     fun bindsRoomRepository(
         roomRepositoryImpl: RoomRepositoryImpl,
     ): RoomRepository
+
+    @Binds
+    fun bindsFeedRepository(
+        feedRepositoryImpl: FeedRepositoryImpl,
+    ): FeedRepository
 }

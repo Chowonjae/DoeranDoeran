@@ -9,7 +9,6 @@ android {
 
     defaultConfig {
         minSdk = AppConfig.minSdk
-        targetSdk = 33
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -34,10 +33,12 @@ android {
 }
 
 dependencies {
-    implementation(project(":domain:model"))
+    implementation(project(":domain:user"))
     implementation(project(":data:account"))
+    implementation(project(":data:user"))
 
     implementation(appDependencies)
+    implementation(project(mapOf("path" to ":data:user")))
     testImplementation(defaultUnitTest)
     androidTestImplementation(defaultAndroidTest)
     implementation(Kotlin.KOTLIN_COROUTINES)

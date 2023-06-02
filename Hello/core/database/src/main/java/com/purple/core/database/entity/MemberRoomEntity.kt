@@ -28,4 +28,5 @@ data class MemberRoomEntity(
     val userId: Long,
     val roomId: Long,
     val nickName: String,
+    val role: String,
 )

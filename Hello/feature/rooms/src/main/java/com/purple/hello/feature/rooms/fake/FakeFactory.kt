@@ -1,8 +1,7 @@
 package com.purple.hello.feature.rooms.fake
 
-import com.purple.core.model.PersonalOptions
-import com.purple.core.model.Room
 import com.purple.core.model.Member
+import com.purple.core.model.Room
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -12,7 +11,7 @@ object FakeFactory {
     }
 
     fun makeRoom(id: Long, name: String): Room {
-        return Room(id, PersonalOptions(1, name, "홍홍"), makeMembers())
+        return Room(id, name, makeMembers())
     }
 
     fun makeRooms(): Flow<List<Room>> {

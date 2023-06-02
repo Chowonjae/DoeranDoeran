@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.common.api.ApiException
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
@@ -23,11 +25,10 @@ import com.purple.hello.R
 import com.purple.hello.login.google.GoogleAuthResultContract
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("StateFlowValueCalledInComposition", "CoroutineCreationDuringComposition")
 @Composable
 fun LoginScreen(
-//    loginViewModel: LoginViewModel,
+    loginViewModel: LoginViewModel = hiltViewModel(),
 ) {
     val coroutineScope = rememberCoroutineScope()
     val signInRequestCode = 1
@@ -42,6 +43,7 @@ fun LoginScreen(
                     coroutineScope.launch {
                         val idToken = account.idToken
                         Log.i(TAG, "구글 로그인 성공: $idToken")
+                        loginViewModel.googleLogin(idToken!!)
                         /* TODO : send ID Token to server and validate */
                     }
                 }
@@ -57,6 +59,7 @@ fun LoginScreen(
                 // 서비스 코드에서는 간단하게 로그인 요청하고 oAuthToken 을 받아올 수 있다.
                 val accessToken = UserApiClient.loginWithKakao(context).accessToken
                 Log.i(TAG, " $accessToken")
+                loginViewModel.kakaoLogin(accessToken)
             } catch (error: Throwable) {
                 if (error is ClientError && error.reason == ClientErrorCause.Cancelled) {
                     Log.i(TAG, "사용자가 명시적으로 취소")
@@ -91,11 +94,20 @@ fun LoginScreen(
 fun HiLogoImage() {
     Column(
         modifier = Modifier
-            .fillMaxWidth(0.4f)
-            .fillMaxHeight(0.2f)
+            .fillMaxWidth(0.5f)
             .padding(all = 24.dp),
+        Arrangement.Center,
+        Alignment.CenterHorizontally,
     ) {
-        Text(text = "LOGO IMAGE")
+        Image(
+            painter = painterResource(id = R.drawable.ic_dorandoran),
+            contentDescription = "로고 이미지",
+        )
+        Spacer(modifier = Modifier.padding(top = 24.dp))
+        Text(
+            text = "도란도란",
+            style = MaterialTheme.typography.headlineSmall,
+        )
     }
 }
 
@@ -126,7 +138,5 @@ private fun SignInGoogleButton(
 @Preview
 @Composable
 private fun PreviewLoginScreen() {
-    LoginScreen(
-//        loginViewModel = LoginViewModel()
-    )
+    LoginScreen()
 }

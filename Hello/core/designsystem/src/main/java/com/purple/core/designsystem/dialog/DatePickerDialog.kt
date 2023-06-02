@@ -52,7 +52,7 @@ fun HiDatePickerDialog(
                                     text = "오늘 날짜 이후는 검색 할 수 없어요!",
                                     textAlign = TextAlign.Center,
                                     color = MaterialTheme.colorScheme.error,
-                                    style = HiTypography.headlineSmall,
+                                    style = HiTypography.titleMedium,
                                 )
                             },
                         )

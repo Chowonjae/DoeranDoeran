@@ -1,6 +1,9 @@
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    id("com.google.dagger.hilt.android")
+    kotlin("android")
+    kotlin("kapt")
+    kotlin("plugin.serialization")
 }
 
 android {
@@ -9,7 +12,6 @@ android {
 
     defaultConfig {
         minSdk = AppConfig.minSdk
-        targetSdk = 33
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -34,9 +36,18 @@ android {
 }
 
 dependencies {
-    implementation(project(":domain:model"))
+    implementation(project(":core:model"))
+    implementation(project(":core:database"))
+    implementation(project(":core:network"))
 
     implementation(appDependencies)
     testImplementation(defaultUnitTest)
     androidTestImplementation(defaultAndroidTest)
+    implementation(Kotlin.KOTLIN_COROUTINES)
+    implementation(KotlinxSerializationJson.KOTLIN_SELIAIZATION_JSON)
+    implementation(retrofit2Dependencies)
+
+    implementation(Hilt.HILT_ANDROID)
+    implementation(project(mapOf("path" to ":core:datastore")))
+    kapt(Hilt.HILT_ANDROID_COMPILER)
 }

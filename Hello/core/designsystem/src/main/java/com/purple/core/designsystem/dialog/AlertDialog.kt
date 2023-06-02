@@ -11,7 +11,8 @@ import androidx.compose.ui.window.DialogProperties
 import com.purple.core.designsystem.component.HiFilledButton
 import com.purple.core.designsystem.component.HiOutlinedButton
 import com.purple.core.designsystem.theme.HiTheme
-import com.purple.core.model.DeleteDialogType
+import com.purple.core.designsystem.theme.HiTypography
+import com.purple.core.model.type.DeleteDialogType
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -30,7 +31,7 @@ fun HiAlertDialog(
             title = {
                 Text(
                     text = content.questionText,
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = HiTypography.bodyLarge,
                 )
             },
             confirmButton = {
@@ -52,6 +53,7 @@ fun HiAlertDialog(
                         Text(
                             text = "아니요",
                             color = MaterialTheme.colorScheme.primary,
+                            style = HiTypography.bodyMedium,
                         )
                     },
                 )

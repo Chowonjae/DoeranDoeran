@@ -1,0 +1,13 @@
+version: '3'
+services:
+  backend_flask:
+    container_name: backend_flask
+    environment:
+      - TZ=Asia/Seoul
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+    build: ./flask/
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./flask:/backend_flask

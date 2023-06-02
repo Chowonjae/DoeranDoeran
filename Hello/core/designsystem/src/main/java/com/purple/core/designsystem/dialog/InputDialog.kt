@@ -2,8 +2,12 @@ package com.purple.core.designsystem.dialog
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -13,37 +17,20 @@ import com.purple.core.designsystem.component.HiFilledButton
 import com.purple.core.designsystem.component.HiOutlinedButton
 import com.purple.core.designsystem.theme.HiTheme
 import com.purple.core.designsystem.theme.HiTypography
-import com.purple.core.model.InputDialogType
+import com.purple.core.model.InputData
+import com.purple.core.model.createInputDataByInputType
+import com.purple.core.model.type.InputDialogType
 
-data class InputData(
-    val question: String,
-    val placeHolder: String,
-    val supportingText: String,
-    var answer: String,
-) {
-    constructor(question: String, placeHolder: String, supportingText: String) : this(
-        question = question,
-        placeHolder = placeHolder,
-        supportingText = supportingText,
-        answer = "",
-    )
-}
-
-fun createInputDataByInputType(type: InputDialogType, answer: String): InputData {
-    return InputData(
-        question = type.question,
-        placeHolder = type.placeHolder,
-        supportingText = type.supportingText,
-        answer = answer,
-    )
-}
-
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun HiInputDialog(
     questionContent: List<InputData>,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
-    properties: DialogProperties = DialogProperties(),
+    properties: DialogProperties = DialogProperties(
+        dismissOnClickOutside = false,
+        usePlatformDefaultWidth = false
+    ),
     confirmButtonText: String,
     dismissButtonText: String,
 ) {
@@ -63,32 +50,29 @@ fun HiInputDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun HiDialogContent(
+fun HiDialogContent(
     questionContent: List<InputData>,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
     confirmButtonText: String,
     dismissButtonText: String,
 ) {
-    val questionContentList = remember {
-        questionContent.map { input -> mutableStateOf(input.answer.orEmpty()) }
-    }
-    val isConfirmEnabled = questionContentList.all { it.value.isNotEmpty() }
+    val errorIndex = remember { mutableStateOf<Int?>(null) }
 
     HiTheme {
         Card(
             shape = MaterialTheme.shapes.large,
             modifier = Modifier
-                .sizeIn(minWidth = MinWidth, maxWidth = MaxWidth),
+                .sizeIn(minWidth = MinWidth, maxWidth = MaxWidth)
+                .padding(DialogPadding),
         ) {
-            Column(
-                Modifier
-                    .background(color = MaterialTheme.colorScheme.onPrimary)
-                    .padding(DialogPadding),
+            LazyColumn(
+                modifier = Modifier.padding(DialogPadding)
             ) {
-                questionContent.forEachIndexed { index, input ->
-                    val inputText = questionContentList[index]
-                    val isError = inputText.value.isEmpty()
+                itemsIndexed(questionContent, key = null) { index, data ->
+                    val isError = index == errorIndex.value
+                    var textFieldValue by remember { mutableStateOf(data.inputValue) }
+
                     Column(
                         modifier = Modifier
                             .padding(ContentPadding),
@@ -99,17 +83,18 @@ private fun HiDialogContent(
                         ) {
                             Text(
                                 color = MaterialTheme.colorScheme.onSurface,
-                                text = input.question,
+                                text = data.question,
                                 style = HiTypography.headlineSmall,
                             )
                         }
                         OutlinedTextField(
-                            value = inputText.value,
+                            value = textFieldValue,
                             onValueChange = { newInputText ->
-                                inputText.value = newInputText
+                                textFieldValue = newInputText
+                                data.inputValue = newInputText
                             },
-                            placeholder = { Text(text = input.placeHolder) },
-                            supportingText = { Text(text = input.supportingText) },
+                            placeholder = { Text(text = data.placeHolder) },
+                            supportingText = { Text(text = data.supportingText) },
                             singleLine = true,
                             maxLines = 1,
                             textStyle = HiTypography.bodyLarge,
@@ -118,28 +103,40 @@ private fun HiDialogContent(
                         )
                     }
                 }
-                Row {
-                    HiOutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                            .weight(1f),
-                        text = { Text(text = dismissButtonText) },
-                    )
-                    HiFilledButton(
-                        onClick = onConfirm,
-                        enabled = isConfirmEnabled,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                            .weight(1f),
-                        text = { Text(text = confirmButtonText) },
-                    )
-                }
+            }
+            Row {
+                HiOutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .weight(1f),
+                    text = { Text(text = dismissButtonText) },
+                )
+                HiFilledButton(
+                    onClick = {
+                        checkInvalid(questionContent).let { invalidIndex ->
+                            if(invalidIndex == -1) onConfirm()
+                            else errorIndex.value = invalidIndex
+                        }
+                    },
+                    enabled = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .weight(1f),
+                    text = { Text(text = confirmButtonText) },
+                )
             }
         }
     }
+}
+
+private fun checkInvalid(inputDataList: List<InputData>): Int {
+    inputDataList.forEachIndexed { index, data ->
+        if(data.inputValue.isEmpty()) return index
+    }
+    return -1
 }
 
 private val DialogPadding = PaddingValues(all = 24.dp)
@@ -153,13 +150,13 @@ private val MaxWidth = 560.dp
 private fun PreviewHiInputDialog() {
     HiInputDialog(
         questionContent = listOf(
-            createInputDataByInputType(InputDialogType.ROOM_NAME, answer = "기존 데이터"),
-            createInputDataByInputType(InputDialogType.NAME, answer = "기존 데이터"),
+            createInputDataByInputType(InputDialogType.ROOM_NAME, inputValue = "기존 데이터"),
+            createInputDataByInputType(InputDialogType.NAME, inputValue = "기존 데이터"),
             InputData(
                 question = "비밀번호 질문",
                 placeHolder = "비밀번호 입력",
                 supportingText = "질문에 맞는 비밀번호를 입력해주세요",
-                answer = "",
+                inputValue = "",
             ),
         ),
         onDismiss = {},

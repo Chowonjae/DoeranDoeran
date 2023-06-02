@@ -1,7 +1,9 @@
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android")
     id("com.google.protobuf") version "0.9.3"
+    kotlin("android")
+    kotlin("plugin.serialization")
+    kotlin("kapt")
 }
 
 android {
@@ -10,7 +12,6 @@ android {
 
     defaultConfig {
         minSdk = AppConfig.minSdk
-        targetSdk = 33
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -59,6 +60,9 @@ dependencies {
 
     implementation(Datastore.DATASTORE)
     implementation(protobufDependencies)
+
+    implementation(Hilt.HILT_ANDROID)
+    kapt(Hilt.HILT_ANDROID_COMPILER)
 
     implementation(Kotlin.KOTLIN_COROUTINES)
     implementation("javax.inject:javax.inject:1")

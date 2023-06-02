@@ -1,0 +1,14 @@
+version: "3"
+services:
+  backend_spring:
+    container_name: backend_spring
+    environment:
+      - TZ=Asia/Seoul
+    build: ./hello
+    ports:
+      - "8000:8000"
+    # volumes:
+    #   - ./hello:/srv/docker-server
+    # depends_on:
+    #   - mysqldb
+    # restart: unless-stopped

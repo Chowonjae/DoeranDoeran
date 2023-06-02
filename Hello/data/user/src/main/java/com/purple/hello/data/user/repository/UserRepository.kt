@@ -1,15 +1,17 @@
 package com.purple.hello.data.user.repository
 
-import com.purple.hello.domain.model.UserInfo
+import com.purple.core.model.Profile
 import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
 
-    suspend fun createUser(userInfo: UserInfo): Flow<String>
+    suspend fun fetchUserInfo()
 
-    suspend fun getUser(userId: String): Flow<UserInfo>
+    fun getUserId(): Flow<Long>
 
-    suspend fun updateUser(userInfo: UserInfo): Flow<Boolean>
+    suspend fun setProfile(profileUrl: String, birth: String)
 
-    suspend fun deleteUser(userId: String): Flow<Boolean>
+    fun getProfile(): Flow<Profile>
+
+    suspend fun sendSafeAlarm(): Result<String>
 }

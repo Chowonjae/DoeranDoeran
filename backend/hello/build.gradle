@@ -1,0 +1,194 @@
+
+
+
+buildscript {
+    ext {
+        queryDslVersion = "5.0.0"
+    }
+}
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.7.10'
+    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+
+    // querydsl
+    id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
+
+    // sonarqube
+    id "org.sonarqube" version "3.0"
+
+    // jacoco
+    id 'jacoco'
+}
+
+
+
+group = 'com.purple'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.mindrot:jbcrypt:0.4'
+    compileOnly 'org.projectlombok:lombok'
+
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // maria
+    //runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+    // H2
+    runtimeOnly 'com.h2database:h2'
+
+    // querydsl
+    implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+    implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
+
+    // swagger
+    implementation 'io.springfox:springfox-boot-starter:3.0.0'
+    implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+
+    // jwt
+    implementation 'io.jsonwebtoken:jjwt:0.9.1'
+    //json
+    implementation 'org.json:json:20200518'
+
+    // https://mvnrepository.com/artifact/com.google.api-client/google-api-client
+    implementation group: 'com.google.api-client', name: 'google-api-client', version: '2.2.0'
+
+    // https://mvnrepository.com/artifact/com.google.auth/google-auth-library-oauth2-http
+    implementation 'com.google.auth:google-auth-library-oauth2-http:0.25.0'
+    implementation 'com.google.http-client:google-http-client-jackson2:1.39.2'
+
+    // fcm
+    implementation 'com.google.firebase:firebase-admin:9.1.1'
+    // starter
+    //testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.7.11'
+
+    testCompileOnly('org.springframework.boot:spring-boot-starter-test')
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+
+    // gson
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.9'
+    
+    //aws
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
+    // https://mvnrepository.com/artifact/org.python/jython-standalone
+    implementation group: 'org.python', name: 'jython-standalone', version: '2.7.3'
+}
+
+sonarqube {
+    properties {
+        property 'sonar.projectKey', 'demo'
+        property 'sonar.host.url', "http://15.165.77.191:8003"
+        // property 'sonar.host.url', "${sonarqube_addr}"
+        property 'sonar.login', "46ee7835cab10f04d8c8da015141082d815588da"
+        ///property 'sonar.login', "${sonarqube_token_secret}"
+        property 'sonar.sources', 'src/main/java'
+        property "sonar.tests", "src/test/java"
+        property 'sonar.language', 'java'
+        property 'sonar.projectVersion', '1.1.0-SNAPSHOT'
+        property 'sonar.sourceEncoding', 'UTF-8'
+        property 'sonar.coverage.jacoco.xmlReportPaths', "$buildDir/reports/jacoco/test/jacocoTestReport.xml"
+        property 'sonar.java.binaries', "$buildDir/classes"
+        property 'sonar.test.inclusions', '**/*Test.java'
+        property 'sonar.exclusions', '**/test/**, **/Q*.java, **/*Doc*.java, **/resources/**'
+    }
+}
+
+test {
+    jacoco {
+        // 테스트 실행 후 커버리지 측정을 위해 JaCoCo를 사용합니다.
+        enabled = true
+        destinationFile = file("$buildDir/jacoco/jacoco.exec")
+    }
+
+    useJUnitPlatform()
+    finalizedBy 'jacocoTestReport'
+}
+
+jacoco {
+    toolVersion = '0.8.7'
+}
+
+jacocoTestReport {
+    reports {
+        html.enabled true // html 만들어 - 로컬에서 쉽게 보기 위함
+        xml.enabled true // xml 만들어 - 소나큐브 연동 위함
+        csv.enabled false // csv 안 만들어
+        xml.destination(new File("build/reports/jacoco.xml"))
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    "com/purple/hello/dao/**",
+                    "com/purple/hello/dao",
+                    "com/purple/hello/dto/**",
+                    "com/purple/hello/entity",
+                    "com/purple/hello/entity/**",
+            ])
+        }))
+    }
+
+    finalizedBy 'jacocoTestCoverageVerification'
+}
+
+jacocoTestCoverageVerification{
+    violationRules {
+        rule{
+            enabled = true
+            element = 'CLASS'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                //minimum = 0.3
+            }
+        }
+    }
+}
+
+// querydsl 세팅
+def querydslDir = "$buildDir/generated/querydsl"
+// JPA 사용 여부와 사용할 경로를 설정
+querydsl {
+    jpa = true
+    querydslSourcesDir = querydslDir
+}
+// build 시 사용할 sourceSet 추가
+sourceSets {
+    main.java.srcDir querydslDir
+}
+// querydsl 컴파일시 사용할 옵션 설정
+compileQuerydsl{
+    options.annotationProcessorPath = configurations.querydsl
+}
+// querydsl 이 compileClassPath 를 상속하도록 설정
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    querydsl.extendsFrom compileClasspath
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

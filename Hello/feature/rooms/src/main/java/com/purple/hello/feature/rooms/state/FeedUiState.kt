@@ -1,16 +1,15 @@
 package com.purple.hello.feature.rooms.state
 
 import com.purple.core.model.Feed
-import java.util.*
 
 sealed interface FeedUiState {
     object Loading : FeedUiState
 
-    data class Loaded(
-        val date: Date,
+    data class Success(
         val feeds: List<Feed>,
-        val question: String,
+        val question: String?,
+        val isPossibleToUpload: Boolean,
     ) : FeedUiState
 
-    data class Error(val message: String?) : FeedUiState
+    data class Error(val message: Throwable?) : FeedUiState
 }

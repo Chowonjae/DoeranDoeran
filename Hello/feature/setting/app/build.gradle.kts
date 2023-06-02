@@ -11,7 +11,6 @@ android {
 
     defaultConfig {
         minSdk = AppConfig.minSdk
-        targetSdk = 33
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -31,7 +30,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = KotlinOptions.jvmTarget
+        jvmTarget = "1.8"
     }
     buildFeatures {
         compose = true
@@ -43,11 +42,13 @@ android {
 
 dependencies {
     implementation(project(":core:designsystem"))
+    implementation(project(":core:model"))
+    implementation(project(":domain:account"))
 
     implementation(composeDependencies)
     implementation(imageLoadDependencies)
     implementation(appDependencies)
-    implementation(hiltDependencies)
+    implementation(navDependencies)
 
     implementation(Hilt.HILT_ANDROID)
     kapt(Hilt.HILT_ANDROID_COMPILER)

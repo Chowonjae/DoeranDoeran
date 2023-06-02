@@ -1,6 +1,6 @@
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    kotlin("android")
     kotlin("plugin.serialization")
     kotlin("kapt")
 }
@@ -48,4 +48,6 @@ dependencies {
 
     implementation(Hilt.HILT_ANDROID)
     kapt(Hilt.HILT_ANDROID_COMPILER)
+
+    implementation(Datastore.DATASTORE)
 }

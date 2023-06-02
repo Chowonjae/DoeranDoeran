@@ -40,7 +40,7 @@ private val LightColors = lightColorScheme(
 
 @Composable
 fun HiTheme(
-    content: @Composable() () -> Unit,
+    content: @Composable () -> Unit,
 ) {
     val hiGradientColors = GradientColors(
         top = colorScheme.background,

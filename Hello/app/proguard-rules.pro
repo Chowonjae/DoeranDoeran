@@ -22,3 +22,7 @@
 
 # You can specify any path and filename.
 #-printconfiguration ~/tmp/full-r8-config.txt
+
+-keep class com.kakao.sdk.**.model.* { <fields>; }
+-keep class * extends com.google.gson.TypeAdapter
+-keep class com.google.googlesignin.** { *; }

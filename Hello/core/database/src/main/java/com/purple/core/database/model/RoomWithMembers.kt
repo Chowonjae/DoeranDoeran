@@ -4,7 +4,6 @@ import androidx.room.Embedded
 import androidx.room.Relation
 import com.purple.core.database.entity.MemberRoomEntity
 import com.purple.core.database.entity.RoomEntity
-import com.purple.core.model.PersonalOptions
 import com.purple.core.model.Room
 
 data class RoomWithMembers(
@@ -19,10 +18,6 @@ data class RoomWithMembers(
 
 fun RoomWithMembers.asExternalModel() = Room(
     roomId = roomEntity.roomId,
-    personalOptions = PersonalOptions(
-        userRoomId = roomEntity.userRoomId,
-        roomName = roomEntity.roomName,
-        userName = roomEntity.userName,
-    ),
+    roomName = roomEntity.roomName,
     members = members.map(MemberInRoom::asExternalModel)
 )

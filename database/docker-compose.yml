@@ -1,0 +1,17 @@
+version: '3'
+services:
+  mysqldb:
+    build: ./mysql
+    env_file:
+      - ./env/mysql.env
+    container_name: database_mysql
+    environment:
+      - TZ=Asia/Seoul
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+    ports:
+      - '3306:3306'
+      - '33060:33060'
+    volumes:
+      - ./mysql/res/data:/var/lib/mysql
+    command: "mysqld"

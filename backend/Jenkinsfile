@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Start') {
+            steps {
+                slackSend (channel: '#bot', color: '#FFFF00', message: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+            }
+        }
+        stage('Build') {
+            steps {
+                dir('backend/hello'){
+                    sh "chmod +x ./gradlew && ./gradlew bootJar"
+                }
+            }
+        }
+        stage('SonarQube analysis') {
+            steps{
+                dir('backend/hello'){
+                    withSonarQubeEnv('SonarQube-Server'){
+                        sh "./gradlew --info sonarqube  -Dsonar.projectKey=demo  -Dsonar.host.url=http://15.165.77.191:8003  -Dsonar.login=46ee7835cab10f04d8c8da015141082d815588da"
+                    }
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                dir('backend'){
+                    sh "docker compose down"
+                    sh "docker compose up --build -d"
+                }
+            }
+        }
+    }
+    post {
+        success {
+            slackSend (channel: '#bot', color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        }
+        failure {
+            slackSend (channel: '#bot', color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        }
+    }
+}

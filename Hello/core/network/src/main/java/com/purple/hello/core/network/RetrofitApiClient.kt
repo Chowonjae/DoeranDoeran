@@ -1,35 +1,40 @@
 package com.purple.hello.core.network
 
-import android.app.Application
+import androidx.datastore.core.DataStore
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.purple.hello.core.datastore.AccountData
+import com.purple.hello.core.datastore.AccountDataStore
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import retrofit2.Retrofit
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
 import java.io.IOException
-import com.purple.hello.core.datastore.AccountDataSerializer.Companion.getAccessToken
-import com.purple.hello.core.datastore.AccountDataSerializer.Companion.getRefreshToken
-import com.purple.hello.core.datastore.AccountDataSerializer.Companion.toAccountData
 import javax.inject.Inject
+import javax.inject.Named
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object RetrofitApiClient {
-    /* TODO : BASE_URL 체크 필요 */
-    private const val BASE_URL = "https://doeran.com/"
+    private const val BASE_URL = "https://www.doeran.kr/api/"
     private val json = Json {
         prettyPrint = true
         ignoreUnknownKeys = true
     }
     private val contentType = "application/json".toMediaType()
 
-    private fun okHttpClient(interceptor: AppInterceptor): OkHttpClient {
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(interceptor: AppInterceptor): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(interceptor)
             .addInterceptor(
@@ -39,24 +44,46 @@ object RetrofitApiClient {
             ).build()
     }
 
-    private fun getApiClient(application: Application): Retrofit {
+    @Provides
+    @Singleton
+    fun provideAppInterceptor(accountDataStore: DataStore<AccountData>): AppInterceptor {
+        return AppInterceptor(
+            AccountDataStore(accountDataStore),
+        )
+    }
+
+    @Provides
+    @Singleton
+    @Named("default")
+    fun provideDefaultRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .client(okHttpClient(AppInterceptor(application)))
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    @Named("login")
+    fun provideLoginRetrofit(): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
     }
 
     class AppInterceptor @Inject constructor(
-        private val context: Application,
+        private val accountDataStore: AccountDataStore,
     ) : Interceptor {
         @Throws(IOException::class)
         override fun intercept(chain: Interceptor.Chain): Response = with(chain) {
-            val accessToken = getAccessToken(context)
+            val accessToken = runBlocking { accountDataStore.accessToken.first() }
 
             val tokenAddedRequest = request().newBuilder()
                 .addHeader("Authorization", "Bearer $accessToken")
                 .build()
+
             val response = proceed(tokenAddedRequest)
 
             when (response.code) {
@@ -68,41 +95,36 @@ object RetrofitApiClient {
         private fun handleUnauthorizedRequest(
             chain: Interceptor.Chain,
         ): Response = with(chain) {
-            val accessToken = getAccessToken(context)
-            val refreshToken = getRefreshToken(context)
-            val reIssueResponse = accountService.reIssue(accessToken, refreshToken)
-            when {
-                reIssueResponse.isSuccess -> {
-                    reIssueResponse.getOrNull().let {
-                        when(it) {
-                            null -> {
-                                accountService.logout()
-                                proceed(request())
-                            }
-                            else -> {
-                                toAccountData(it.accessToken, it.refreshToken)
-                                val newRequest = request().newBuilder()
-                                    .addHeader("Authorization", "Bearer ${it.accessToken}")
-                                    .build()
-                                proceed(newRequest)
-                            }
+            val accessToken = runBlocking { accountDataStore.accessToken.first() }
+            val refreshToken = runBlocking { accountDataStore.refreshToken.first() }
+
+            val reIssueCall = accountService.reIssue(accessToken, refreshToken)
+
+            try {
+                val reIssueResponse = reIssueCall.execute()
+
+                if (reIssueResponse.isSuccessful) {
+                    run {
+                        runBlocking {
+                            accountDataStore.setToken(
+                                reIssueResponse.headers()["Access-Token"] ?: "",
+                                reIssueResponse.headers()["Refresh-Token"] ?: "",
+                            )
                         }
+                        val newRequest = request().newBuilder()
+                            .addHeader("Authorization", "Bearer ${reIssueResponse.headers()["Access-Token"]}")
+                            .build()
+                        proceed(newRequest)
                     }
-                }
-                else -> {
-                    accountService.logout()
+                } else {
+                    runBlocking { accountDataStore.clearToken() }
                     proceed(request())
                 }
+            } catch (e: IOException) {
+                proceed(request())
             }
         }
     }
 
-    private fun loginClient(): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(json.asConverterFactory(contentType))
-            .build()
-    }
-
-    private val accountService: AccountService = loginClient().create(AccountService::class.java)
+    private val accountService: AccountService = provideLoginRetrofit().create(AccountService::class.java)
 }

@@ -1,0 +1,11 @@
+version: "3"
+services:
+  sonarqube:
+    image: sonarqube:8.6-community
+    environment:
+      - TZ=Asia/Seoul
+    ports:
+      - "8003:9000"
+    volumes:
+      - "./data:/opt/sonarqube/data"
+      - "./extensions:/opt/sonarqube/extensions"

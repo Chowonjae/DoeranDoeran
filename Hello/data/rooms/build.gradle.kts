@@ -21,9 +21,13 @@ android {
 dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:database"))
+    implementation(project(":core:network"))
+
     implementation(Kotlin.KOTLIN_COROUTINES)
+    implementation(KotlinxSerializationJson.KOTLIN_SELIAIZATION_JSON)
     implementation(retrofit2Dependencies)
 
     implementation(Hilt.HILT_ANDROID)
+    implementation(project(mapOf("path" to ":core:datastore")))
     kapt(Hilt.HILT_ANDROID_COMPILER)
 }

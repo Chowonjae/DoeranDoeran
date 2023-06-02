@@ -9,13 +9,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import com.purple.core.designsystem.icon.HiIcons
+import com.purple.core.designsystem.icon.Icon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HiTopAppBar(
     title: String,
-    navigationIcon: ImageVector,
-    navigationIconContentDescription: String?,
+    navigationIcon: ImageVector? = null,
+    navigationIconContentDescription: String? = null,
     actions: @Composable RowScope.() -> Unit,
     modifier: Modifier = Modifier,
     onNavigationClick: () -> Unit = {},
@@ -23,12 +24,14 @@ fun HiTopAppBar(
     TopAppBar(
         title = { Text(text = title) },
         navigationIcon = {
-            IconButton(onClick = onNavigationClick) {
-                Icon(
-                    imageVector = navigationIcon,
-                    contentDescription = navigationIconContentDescription,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            if(navigationIcon != null) {
+                IconButton(onClick = onNavigationClick) {
+                    Icon(
+                        imageVector = navigationIcon,
+                        contentDescription = navigationIconContentDescription,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         },
         actions = actions,
@@ -52,7 +55,8 @@ private fun PreviewHiTopAppBar() {
         navigationIconContentDescription = "뒤로가기",
         actions = {
             IconButton(onClick = {}) {
-                Icon(imageVector = HiIcons.PersonAdd, contentDescription = "초대하기")
+                Icon.DrawableResourceIcon(HiIcons.PersonAdd)
+//                Icon(drawbe = HiIcons.PersonAdd, contentDescription = "초대하기")
             }
             IconButton(onClick = {}) {
                 Icon(imageVector = HiIcons.Calendar, contentDescription = "달력")
